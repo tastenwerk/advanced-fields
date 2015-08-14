@@ -20,7 +20,6 @@
     public $context = 'normal';
     public function init_array(){}
 
-
     public function my_meta_init()
     {
       $post_id = $_GET['post'] ? $_GET['post'] : $_POST['post_ID'] ;
@@ -47,7 +46,9 @@
 
         echo '<tr><th><label for="'.$field['id'].'">'.$field['label'].'</label></th><td>';
         // remove last character due to include
-        if( file_exists ( get_template_directory()."/advanced-fields/views/".$field['type'].'.php' ) )
+        if( file_exists ( dirname( __FILE__).'/views/'.$field['type'].'.php' ) )
+          echo substr( require( dirname( __FILE__)."/views/".$field['type'].'.php' ), 0, -3);
+        elseif( file_exists ( get_template_directory()."/advanced-fields/views/".$field['type'].'.php' ) )
           echo substr( require( get_template_directory()."/advanced-fields/views/".$field['type'].'.php' ), 0, -3);
         echo '</td></tr>';
       }
