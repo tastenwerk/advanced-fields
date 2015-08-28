@@ -16,6 +16,10 @@ defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
 include 'custom-meta-box.php';  
 
+if ( ! function_exists( 'get_plugins' ) ) {
+  require_once ABSPATH . 'wp-admin/includes/plugin.php';
+}
+
 class Plugin{
 
   public $dirname = 'advanced-fields';
@@ -27,15 +31,25 @@ class Plugin{
   }
 
   public function init_boxes(){
-    $boxdir = get_template_directory()."/".$this->dirname."/boxes";
-    $files = scandir( $boxdir );
-    foreach ( $files as $file ) {
-      if( preg_match( "/.php$/", $file) ){
-        include( $boxdir."/".$file);
-        // Make filename to classname with namespace and creates class
-        $name = str_replace(' ','',ucwords(str_replace('-',' ',$file)));
-        $classname = $this->namespace.ucfirst ( str_replace( '.php', '', $name ) );
-        new $classname();
+    $dirs = array();
+    foreach ( get_plugins() as $key => $value ) {
+      array_push( $dirs, WP_PLUGIN_DIR."/".plugin_dir_path( $key ) );
+    }
+    array_push( $dirs, get_template_directory().'/' );
+
+    foreach ( $dirs as $dir ) {
+      $boxdir = $dir.$this->dirname."/boxes";
+      if( file_exists( $boxdir ) ){
+        $files = scandir( $boxdir );
+        foreach ( $files as $file ) {
+          if( preg_match( "/.php$/", $file) ){
+            include( $boxdir."/".$file);
+            // Make filename to classname with namespace and creates class
+            $name = str_replace(' ','',ucwords(str_replace('-',' ',$file)));
+            $classname = $this->namespace.ucfirst ( str_replace( '.php', '', $name ) );
+            new $classname();
+          }
+        }
       }
     }
   }
@@ -44,9 +58,6 @@ class Plugin{
   public function add_js_and_css_files(){
     if(is_admin()) { 
       // GET PLUGIN DIRS
-      if ( ! function_exists( 'get_plugins' ) ) {
-        require_once ABSPATH . 'wp-admin/includes/plugin.php';
-      }
       $dirs = array();
       $plugins = get_plugins();
       foreach ($plugins as $key => $value ) {
@@ -76,7 +87,10 @@ class Plugin{
       if( file_exists( $css_dir ) ) 
         foreach ( scandir( $css_dir ) as $file ) {
           if( preg_match( "/.css$/", $file) ){
-            wp_enqueue_style( str_replace( '.css', '', $file  ), $dir['url']."css/".$file );
+            if( strpos($dir['path'], $this->dirname ) )
+              wp_enqueue_style( str_replace( '.css', '', $file  ), $dir['url']."css/".$file );
+            else
+              wp_enqueue_style( str_replace( '.css', '', $file  ), $dir['url']."advanced-fields/css/".$file );
           }
         }
     }
@@ -91,7 +105,10 @@ class Plugin{
       if( file_exists( $css_dir ) ) 
         foreach ( scandir( $css_dir ) as $file ) {
           if( preg_match( "/.js$/", $file) ){
-            wp_enqueue_script( str_replace( '.js', '', $file  ), $dir['url']."js/".$file );
+            if( strpos($dir['path'], $this->dirname ) )
+              wp_enqueue_script( str_replace( '.js', '', $file  ), $dir['url']."js/".$file );
+            else
+              wp_enqueue_script( str_replace( '.js', '', $file  ), $dir['url']."advanced-fields/js/".$file );
           }
         }
     }

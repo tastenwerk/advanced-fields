@@ -1,5 +1,13 @@
 <?php
 
+  function localize( $string ){
+    //  TODO!
+    // echo qtrans_use( qtrans_getLanguage(), $string, false );
+    // echo split('[:]', $string);
+    // echo "HERE";
+    return substr( split('\[:', $string)[1], 3);
+  }
+
   class CustomMetaBox
   {
     public function __construct() {
@@ -14,10 +22,14 @@
 
     public $template = '';
     public $templatedir = '';
+    public $working_dir = '';
     public $boxname = 'boxname';
 
     public $post_type = 'page';
     public $context = 'normal';
+
+    public $boxes = array();
+
     public function init_array(){}
 
     public function my_meta_init()
@@ -26,34 +38,78 @@
 
       $template_file = get_post_meta($post_id,'_wp_page_template',TRUE);
 
-      if ( $this->template == '' || $template_file == $this->templatedir.$this->template.'.php')
+      if( sizeof( $this->boxes ) > 0 ){
+        $index = 0;
+        foreach ($this->boxes as $box ) {
+          // echo $box->title;
+          // echo "TEST";
+          // echo $box['title'];
+          // print_r( $box );
+          // $title = $box['title']."_".$box['context']."_".$index;
+          // echo $title;
+          // echo $box['content'];
+          // print_r( $box['content'] );
+          $this->context = $box['context'];
+          $this->fields_array = $box['content'];
+          echo $box['title']."_".$box['context']."_".$index;
+          add_meta_box(
+            $box['title']."_".$box['context']."_".$index,
+            __( $box['title'], 'lineup'),
+            array( $this,'show_custom_meta_box' ), 
+            $this->post_type, 
+            $box['context'], 
+            $box['priority']
+          );
+        }
+      }
+      elseif ( $this->template == '' || $template_file == $this->templatedir.$this->template.'.php')
       {
-          add_meta_box('myplugin_sectionid',
-            __( $this->boxname, 'myplugin_textdomain' ),
-            array($this,'show_custom_meta_box'), $this->post_type, $this->context, 'high');
+        add_meta_box(
+           $this->title.$this->context,
+          __( $this->boxname, 'lineup' ),
+          array($this,'show_custom_meta_box'), 
+          $this->post_type, $this->context, 'high'
+        );
       }
     }
 
-    public function show_custom_meta_box($array) {
+    public function show_custom_meta_box() {
       global $post;
 
-      echo '<input type="hidden" name="custom_meta_box_nonce" value="'.wp_create_nonce(basename(__FILE__)).'" />';
-      echo '<table class="form-table">';
+      if( sizeof( $this->fields_array) == 0 )
+        return;
+
+      $jump_table = $this->context == 'normal' ? false : true;
+
+      if (!$jump_table){
+        echo '<input type="hidden" name="custom_meta_box_nonce" value="'.wp_create_nonce(basename(__FILE__)).'" />';
+        echo '<table class="form-table">';
+      }
 
       foreach ($this->fields_array as $field) {
-
         $meta = get_post_meta($post->ID, $field['id'], true);
-
-        echo '<tr><th><label for="'.$field['id'].'">'.$field['label'].'</label></th><td>';
-        // remove last character due to include
+        if (!$jump_table) echo '<tr><th>';
+        else echo '<div>';
+        echo '<label'; 
+        if($field['id']) echo ' for="'.$field['id'];
+        if($field['type']=='sub') echo ' class="mini-title"';
+        echo '">'.$field['label'].'</label>';
+        if (!$jump_table) echo '</th><td>';
+        if( $field['type'] == 'sub' && !$field['first'] ) echo '<hr>';
+        
         if( file_exists ( dirname( __FILE__).'/views/'.$field['type'].'.php' ) )
           echo substr( require( dirname( __FILE__)."/views/".$field['type'].'.php' ), 0, -3);
+        elseif ( file_exists ( $this->working_dir.'/views/'.$field['type'].'.php' ) )
+          echo substr( require( $this->working_dir."/views/".$field['type'].'.php' ), 0, -3);
         elseif( file_exists ( get_template_directory()."/advanced-fields/views/".$field['type'].'.php' ) )
           echo substr( require( get_template_directory()."/advanced-fields/views/".$field['type'].'.php' ), 0, -3);
-        echo '</td></tr>';
-      }
-      echo '</table>';
+        
+        if (!$jump_table) echo '</td></tr>';
+        else echo '</div>';
+      } 
+      if (!$jump_table) echo '</table>'; 
     }
+
 
     public function save_custom_meta($post_id) {
 

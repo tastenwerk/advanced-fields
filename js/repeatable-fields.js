@@ -56,7 +56,6 @@ jQuery(function(jQuery) {
         });
       })
       field.insertAfter(fieldLocation, jQuery(this).closest('td'))
-      console.log('HERE!');
       return false;
     });
 
