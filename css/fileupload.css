@@ -1,0 +1,26 @@
+.custom_upload_file_button{
+  float: left;
+  padding: 10px;
+}
+
+.file-upload-text a{
+  text-decoration: none;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.file-upload-text a:hover{
+  text-decoration: underline;
+}
+
+.remove-upload{
+  cursor: pointer;
+}
+
+.file-upload-text{
+  padding-top: 6px;
+}
+
+.upload-repeatable{
+  margin-left: 20px;  
+}
