@@ -5,6 +5,7 @@
     // echo qtrans_use( qtrans_getLanguage(), $string, false );
     // echo split('[:]', $string);
     // echo "HERE";
+    
     if( preg_match( '/^\[:/', $string) )
       return substr( split('\[:', $string)[1], 3);
     else 
@@ -133,13 +134,18 @@
       }
 
       foreach ($this->fields_array as $field) {
-        $old = get_post_meta($post_id, $field['id'], true);
-        $new = $_POST[$field['id']];
-        if ($new && $new != $old) {
-          update_post_meta($post_id, $field['id'], $new);
-        } elseif ('' == $new && $old) {
-          delete_post_meta($post_id, $field['id'], $old);
-        }
+        if( $field['type'] == 'editor'):
+          $data=htmlspecialchars($_POST[$field['id']]);
+          update_post_meta( $post_id, $field['id'], $data );
+        else:
+          $old = get_post_meta($post_id, $field['id'], true);
+          $new = $_POST[$field['id']];
+          if ($new && $new != $old) {
+            update_post_meta($post_id, $field['id'], $new);
+          } elseif ('' == $new && $old) {
+            delete_post_meta($post_id, $field['id'], $old);
+          }
+        endif;
       } 
     }
 
