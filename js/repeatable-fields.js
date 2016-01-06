@@ -64,11 +64,11 @@ jQuery(function(jQuery) {
       return false;
     });
 
-    jQuery('.custom_repeatable').sortable({
-      opacity: 0.6,
-      revert: true,
-      cursor: 'move',
-      handle: '.sort'
-    });
+   // jQuery('.custom_repeatable').sortable({
+   //   opacity: 0.6,
+   //   revert: true,
+   //   cursor: 'move',
+   //   handle: '.sort'
+   // });
  
 });
